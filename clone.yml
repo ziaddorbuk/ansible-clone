@@ -1,0 +1,26 @@
+---
+- name: Clone GitHub repositories and checkout branches with token authentication
+  hosts: my_hosts
+  become: yes
+  become_method: sudo
+  vars_files:
+    - vault.yml
+  vars:
+    repos:
+      - { name: "Sprints-master-class", url: "https://github.com/ziaddorbuk/Sprints-master-class.git", branch: "main" }
+      - { name: "HomeGate", url: "https://github.com/ziaddorbuk/HomeGate.git", branch: "main" }
+
+  tasks:
+    - name: Ensure git is installed
+      ansible.builtin.package:
+        name: git
+        state: present
+
+    - name: Clone repositories
+      ansible.builtin.git:
+        repo: "https://{{ github_token }}@{{ item.url | regex_replace('https://', '') }}"
+        dest: "/home/repos/{{ item.name }}"
+        version: "{{ item.branch }}"
+        update: yes
+      loop: "{{ repos }}"
+
